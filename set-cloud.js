@@ -3,15 +3,6 @@ let fs = require("fs-extra"),
 	pathSep = require("path").sep,
 	httpProxy = require('http-proxy');
 
-/*
-let appNameMap = {
-		ls: 	'Localsearch',
-		yelp: 	'Yelp',
-		wiki: 	'WikiLocations',
-		vn: 	'VoiceNote',
-		tunein: 'Tunein'
-	},
-*/
 let cloudMap = {
 		test1:  { },
 		test2: 	{ UrlSource: 3 },
@@ -24,10 +15,8 @@ let cloudMap = {
 		qa:    8090
 	};
 
-
 function updateFrameworkInis(cloud) {
-	let appName = "localsearch",
-		spaTempDirRoot = [process.env['TEMP'], "spa"].join(pathSep),
+	let spaTempDirRoot = [process.env['USERPROFILE'], ".spa"].join(pathSep),
 		appNames = fs.readdirSync(spaTempDirRoot);
 
 	appNames.forEach(function(appName) {
@@ -70,49 +59,15 @@ function updateFrameworkInis(cloud) {
 	});
 }
 
-function refreshPidFile() {
-	let fileName = process.env['TEMP'] + pathSep + "_proxyPid";
-	try {
-		let oldPid = fs.readFileSync(fileName, 'utf-8');
-		process.kill(oldPid);
-		console.log("Killed old pid", oldPid);
-	} catch (e) {
-		console.log("No pid file found");
-	}
-	fs.writeFileSync(fileName, process.pid);
-}
-
-function startProxy(inPort, outPort) {
-	let options = { target: { host: "127.0.0.1", port: outPort }};
-
-	console.log("Starting proxy:", inPort, "=>", outPort, "(cloud:", cloudId + ") (pid:", process.pid + ")");
-	httpProxy.createProxyServer(options).listen(inPort);
-}
 
 let cloudId,
 	hasValidCloud = (process.argv.length >= 2) && (process.argv[2] in cloudMap);
 
 if (!hasValidCloud) {
 	cloudId = "test1";
-	/*
-	console.log("Usage:", process.argv[1], "appname cloud")
-	console.log("Available clouds:");
-	Object.keys(cloudMap).forEach(function(k, i) {
-		console.log("\t", k);
-	});
-	process.exit(-1);
-	*/
 } else {
 	cloudId = process.argv[2]
 }
 
-cloud = cloudMap[cloudId];
+updateFrameworkInis(cloudMap[cloudId]);
 
-updateFrameworkInis(cloud);
-refreshPidFile();
-
-
-let inPort = 8000,
-	outPort = cloudPorts[cloudId];
-
-startProxy(inPort, outPort);
